@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import friendsList from "./friends.json";
 import FormSplitBill from "./components/FormSplitBill";
 import FriendListCard from "./components/FriendListCard";
 import FormAddFriend from "./components/FormAddFriend";
 
 function App() {
-    const [friends, setFriends] = useState(friendsList);
+    const [friends, setFriends] = useState(() => {
+        const savedFriends = localStorage.getItem('friends');
+        return savedFriends ? JSON.parse(savedFriends) : friendsList;
+    });
     const [showAddFriend, setShowFriend] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
+
+    useEffect(() => {
+        localStorage.setItem('friends', JSON.stringify(friends));
+    }, [friends]);
 
     const handleShowAddFriend = () => setShowFriend((prev) => !prev);
 
@@ -33,6 +40,14 @@ function App() {
         setSelectedFriend(null);
     }
 
+    // Tambahkan fungsi ini
+    function handleDeleteFriend(id) {
+        setFriends((prevFriends) => prevFriends.filter(friend => friend.id !== id));
+        if (selectedFriend && selectedFriend.id === id) {
+            setSelectedFriend(null);
+        }
+    }
+
     return (
         <div className="app">
             <div className="sidebar">
@@ -40,6 +55,7 @@ function App() {
                     friends={friends}
                     onSelectedFriend={onSelectedFriend}
                     selectedFriend={selectedFriend}
+                    onDeleteFriend={handleDeleteFriend}  // Tambahkan prop ini
                 />
                 {showAddFriend && <FormAddFriend onAddNewFriend={onAddNewFriend} />}
                 <button className="button" onClick={handleShowAddFriend}>
